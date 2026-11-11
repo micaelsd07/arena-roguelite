@@ -14,7 +14,15 @@ public enum Sfx {
     SELECT("select", 0.70f, 1),
     RICOCHET("ricochet", 0.35f, 2),
     WAVE_START("wave_start", 0.75f, 1),
-    GAME_OVER("game_over", 0.90f, 1);
+    GAME_OVER("game_over", 0.90f, 1),
+    DEATH_WOLF("death_wolf", 0.60f, 2),
+    DASH("dash", 0.55f, 2),
+    BOSS_ROAR("boss_roar", 1.00f, 1),
+    SHIELD("shield", 0.70f, 1),
+    NOVA("nova", 0.70f, 1),
+    LIGHTNING("lightning", 0.75f, 1),
+    EXPLOSION("explosion", 0.65f, 3),
+    CHEST("chest", 0.85f, 1);
 
     public final String file;
     /** Volume relativo do efeito (multiplicado pelo volume geral). */

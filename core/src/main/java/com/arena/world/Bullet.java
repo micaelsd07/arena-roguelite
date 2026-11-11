@@ -23,6 +23,7 @@ public class Bullet implements Pool.Poolable {
     public int ricochet;
     public float sineAmp;       // amplitude da ondulacao (m)
     public float homing;        // velocidade de curva (rad/s)
+    public float knockback;
     public float retargetTimer;
     public Enemy target;
     public int orbitIndex;
@@ -36,7 +37,7 @@ public class Bullet implements Pool.Poolable {
     @Override
     public void reset() {
         enemyOwned = orbit = dead = false;
-        radius = damage = speed = life = time = sineAmp = homing = retargetTimer = 0;
+        radius = damage = speed = life = time = sineAmp = homing = retargetTimer = knockback = 0;
         dir.setZero();
         pierce = ricochet = orbitIndex = 0;
         target = null;

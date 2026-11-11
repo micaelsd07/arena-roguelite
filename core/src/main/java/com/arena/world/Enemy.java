@@ -1,5 +1,6 @@
 package com.arena.world;
 
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.utils.Pool;
 
@@ -8,10 +9,22 @@ public class Enemy implements Pool.Poolable {
     public final EnemyType type;
     public Body body;
     public float hp, maxHp;
-    public float shootTimer;
-    public float flash;          // tempo do "piscar branco" ao levar dano
-    public int orbitContacts;    // quantos projeteis orbitais estao encostando
-    public float orbitHitTimer;  // cooldown de dano dos orbitais
+    public float flash;          // piscar branco ao levar dano
+    public float age;            // tempo de vida (animacao de surgimento)
+    public float animTime;
+    public boolean facingLeft;
+    public int orbitContacts;
+    public float orbitHitTimer;
+    public float slowTimer;      // congelado pelo escudo de gelo
+    public final Vector2 knock = new Vector2();
+    public final Vector2 lockedDir = new Vector2();
+    // Maquina de estados simples (dasher e chefes)
+    public int state;
+    public float stateTimer;
+    public float attackTimer;
+    public float castTimer;      // mostra o frame de conjuracao
+    public float patternAngle;
+    public int counter;
     public boolean dead;
 
     public Enemy(EnemyType type) { this.type = type; }
@@ -22,12 +35,12 @@ public class Enemy implements Pool.Poolable {
 
     @Override
     public void reset() {
-        hp = maxHp = 0;
-        shootTimer = 0;
-        flash = 0;
-        orbitContacts = 0;
-        orbitHitTimer = 0;
-        dead = false;
+        hp = maxHp = flash = age = animTime = orbitHitTimer = slowTimer = 0;
+        stateTimer = attackTimer = castTimer = patternAngle = 0;
+        state = counter = orbitContacts = 0;
+        facingLeft = dead = false;
+        knock.setZero();
+        lockedDir.setZero();
         if (body != null) body.setActive(false);
     }
 }

@@ -34,6 +34,14 @@ public final class SfxGenerator {
         write(out, "level_up",     arpeggio(new float[]{523, 659, 784, 1047, 1319}, 0.07f, Wave.SQUARE, 0.4f));
         write(out, "wave_start",   arpeggio(new float[]{392, 392, 523}, 0.12f, Wave.SAW, 0.4f));
         write(out, "game_over",    arpeggio(new float[]{392, 330, 262, 196, 131}, 0.20f, Wave.TRIANGLE, 0.6f));
+        write(out, "death_wolf",   mix(vibrato(tone(0.45f, 520, 180, Wave.SAW, 0.45f, 0.5f), 9f), noise(0.2f, 3, 0.3f)));
+        write(out, "dash",         noise(0.16f, 1, 0.45f));
+        write(out, "boss_roar",    mix(vibrato(tone(1.1f, 120, 55, Wave.SAW, 0.6f, 0.5f), 7f), noise(1.0f, 8, 0.45f)));
+        write(out, "shield",       mix(tone(0.30f, 900, 1800, Wave.TRIANGLE, 0.4f, 0.5f), tone(0.30f, 1350, 2700, Wave.TRIANGLE, 0.25f, 0.5f)));
+        write(out, "nova",         mix(noise(0.35f, 1, 0.5f), tone(0.35f, 1200, 300, Wave.SQUARE, 0.25f, 0.25f)));
+        write(out, "lightning",    mix(noise(0.30f, 0, 0.7f), tone(0.30f, 2400, 200, Wave.SAW, 0.3f, 0.5f)));
+        write(out, "explosion",    mix(noise(0.55f, 5, 0.8f), tone(0.5f, 90, 30, Wave.SQUARE, 0.5f, 0.5f)));
+        write(out, "chest",        arpeggio(new float[]{523, 784, 1047, 1568, 2093}, 0.06f, Wave.TRIANGLE, 0.5f));
         write(out, "music",        music());
         System.out.println("Audio gerado em " + out.getAbsolutePath());
     }

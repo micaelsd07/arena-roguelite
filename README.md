@@ -18,55 +18,75 @@ Requer JDK 17+.
 
 | Tecla | Ação |
 |---|---|
-| WASD | mover |
+| WASD / setas | mover |
 | Mouse | mirar |
-| Botão esquerdo (segurar) | atirar |
+| Botão esquerdo (segurar) | atirar flechas |
+| Espaço / Shift | dash (atravessa inimigos, 0,25 s invencível) |
+| Q / botão direito | habilidade especial |
 | 1 / 2 / 3 ou clique | escolher melhoria |
-| R | reiniciar após game over |
-| M | mudo · `-` / `+` volume |
+| R | reiniciar após a derrota |
+| M · `-` / `+` | mudo · volume |
+| F3 | mostrar/ocultar estatísticas de pooling |
+
+## Arte
+
+A arte parte das imagens de referência em `art/` e é processada por `tools/ArtBuilder`:
+
+```bash
+./gradlew :tools:run    # gera assets/atlas/game.atlas + game.png
+```
+
+- **Personagens e ícones** são recortados das planilhas (`hero.png`, `enemies.jpg`, `icons.jpg`):
+  fundo removido por cor com tolerância adaptativa, números/rótulos e sombras descartados,
+  redução por média de área e alfa binário para bordas nítidas.
+- **Cenários** são pintados proceduralmente (tiles de chão/parede, pilares, sarcófagos, árvores,
+  cogumelos, ruínas, fogueiras...) com a paleta extraída por k-means de cada painel de `biomes.jpg`.
+- Para trocar a arte, substitua os arquivos em `art/` (mantendo a grade 8x4) e rode `:tools:run`.
+  O mapeamento de células fica em `ArtBuilder.java`.
+
+## Conteúdo
+
+| Bioma | Ondas | Obstáculos | Chefe (onda) |
+|---|---|---|---|
+| Cripta Esquecida | 1–5 | pilares, sarcófagos | Cavaleiro-Rei (5) |
+| Floresta Corrompida | 6–10 | árvores mortas, rochas | Lobisomem Alfa (10) |
+| Ruínas Sombrias | 11+ | muros quebrados, colunas, fogueiras | Necromante Supremo (15), depois aleatório |
+
+| Inimigo | Comportamento |
+|---|---|
+| Espectro | persegue flutuando e atravessa outros inimigos |
+| Necromante | mantém distância e lança bolas de fogo |
+| Lobisomem | para, rosna e investe em linha reta |
+| Cavaleiro | lento, resistente, quase não sofre knockback |
+
+O chefe deixa um baú com uma melhoria garantida, e a próxima onda espera o baú ser aberto.
+**Habilidades especiais** (oferecidas no level up, uma equipada por vez, até o nível 5):
+Chuva de Flechas, Escudo de Gelo, Raio em Cadeia e Chuva de Meteoros.
 
 ## Estrutura
 
 ```
 core/src/main/java/com/arena
-├── ArenaGame.java          Game: SpriteBatch, texturas, áudio
-├── world/                  lógica pura (sem renderização, testável headless)
-│   ├── GameWorld.java      Box2D, pools, contatos, XP, level up
-│   ├── WaveManager.java    hordas por orçamento (10 + onda*5), limite de 300 vivos
-│   ├── Bullet/Enemy/Gem    objetos Poolable
-│   ├── Upgrade.java        12 melhorias acumuláveis
-│   └── Phys.java           bits de colisão e tamanho da arena
-├── render/                 WorldRenderer (metros), Hud (pixels), Assets (texturas via Pixmap)
-├── screens/                MenuScreen, GameScreen (passo fixo 60 Hz, câmera seguindo)
-├── audio/                  Sfx, AudioManager (throttle 50 ms, pitch ±10%, volume, música)
-└── tools/SfxGenerator.java sintetizador chiptune que gera os .wav
+├── world/        lógica pura (testável headless): GameWorld, WaveManager, Biome, Enemy, Bullet,
+│                 Obstacle, Special, Upgrade, WorldEvents...
+├── render/       WorldRenderer (Y-sort, sombras, projéteis), Lighting (FrameBuffer de luz),
+│                 Particles (pool), Fx (juice: partículas, tremor, números, raios), Hud, Assets
+├── screens/      MenuScreen, GameScreen (passo fixo 60 Hz, câmera suave com tremor)
+├── audio/        Sfx, AudioManager (throttle 50 ms, pitch ±10%, volume, música)
+└── tools/        SfxGenerator (sintetizador chiptune dos .wav)
+tools/            ArtBuilder, Painter, Packer (pipeline de arte, java.awt)
+art/              imagens de referência (fonte da arte)
 ```
 
 ### Decisões técnicas
 
-- **Box2D em tudo**: paredes (estático, `ChainShape`), jogador e inimigos (dinâmicos),
-  projéteis (**kinematic + sensor**). Filtros de categoria separam tiros do jogador e dos inimigos.
-- **Trajetórias**: a velocidade de cada projétil é recalculada por frame — reta, senoidal
-  (deslocamento perpendicular), teleguiada (curva limitada por rad/s) e orbital (posicionada via
-  `setTransform`). Kinematic × estático não gera contato no Box2D, então ricochete e colisão com a
-  parede usam os limites da arena.
-- **Object pooling**: `Pool<Bullet>`, um `Pool<Enemy>` por tipo (o raio da fixture é fixo) e
-  `Pool<Gem>`. Os corpos Box2D são criados uma vez e reaproveitados com `setActive(false/true)`.
-  O HUD mostra os objetos livres em cada pool e o total de corpos — num teste com 500+ tiros,
-  o mundo nunca passou de ~40 corpos.
-- **Colisões** são coletadas no `ContactListener` e processadas depois do `step`
-  (não se pode alterar corpos durante o step).
-- **Renderização**: texturas brancas geradas em `Pixmap` e tingidas, num único `SpriteBatch`.
-- **Áudio**: 13 efeitos e uma música em loop, sintetizados em código (onda quadrada, triangular,
-  dente de serra e ruído com envelope). Para trocar por sons próprios, basta substituir os
-  arquivos em `assets/sfx/` mantendo os nomes.
-
-## Inimigos
-
-| Tipo | Custo | A partir da onda | Comportamento |
-|---|---|---|---|
-| Chaser | 1 | 1 | persegue, dano por contato |
-| Shooter | 3 | 2 | mantém 5–8 m de distância e atira |
-| Tank | 5 | 3 | lento, muita vida, grande |
-
-A vida dos inimigos cresce 12% por onda. A próxima onda começa quando a atual é limpa ou após 30 s.
+- **Box2D**: paredes e obstáculos estáticos, jogador e inimigos dinâmicos, projéteis kinematic +
+  sensor. Kinematic × estático não gera contato, então projéteis testam paredes e obstáculos
+  manualmente (com reflexão na normal para o ricochete). Durante o dash, a máscara de colisão do
+  jogador vira só `WALL`.
+- **Object pooling** em projéteis, inimigos (um pool por tipo), gemas, portais, meteoros,
+  partículas e números de dano. Corpos Box2D são reaproveitados com `setActive`.
+- **Iluminação**: luz ambiente por bioma; jogador, tochas, fogueiras, cogumelos, flechas, bolas
+  de fogo, gemas, portais e explosões emitem luz num FrameBuffer multiplicado sobre a cena.
+- **Renderização**: tudo vem de um único atlas, então o SpriteBatch faz poucas trocas de textura.
+  Personagens são ordenados por Y; o flash de dano usa um shader de silhueta branca.

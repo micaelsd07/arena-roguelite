@@ -1,0 +1,9 @@
+apply plugin: 'application'
+
+// Pipeline de arte (desktop, usa java.awt): le art/*, extrai sprites, pinta tiles e gera o atlas.
+application { mainClass = 'com.arena.tools.ArtBuilder' }
+
+run {
+    workingDir = rootProject.projectDir
+    args 'art', 'assets/atlas'
+}
