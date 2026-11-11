@@ -1,0 +1,12 @@
+apply plugin: 'java-library'
+
+dependencies {
+    api "com.badlogicgames.gdx:gdx:$gdxVersion"
+    api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    testImplementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+}
+
+test { testLogging { events 'passed', 'failed'; showStandardStreams = true } }

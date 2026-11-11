@@ -1,0 +1,2 @@
+rootProject.name = 'arena-roguelite'
+include 'core', 'lwjgl3'

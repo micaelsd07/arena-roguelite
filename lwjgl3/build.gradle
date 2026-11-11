@@ -1,0 +1,37 @@
+apply plugin: 'application'
+
+application { mainClass = 'com.arena.lwjgl3.Lwjgl3Launcher' }
+
+sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
+
+dependencies {
+    implementation project(':core')
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    implementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+}
+
+run {
+    workingDir = rootProject.file('assets')
+    ignoreExitValue = true
+    if (System.getProperty('os.name').toLowerCase().contains('mac')) jvmArgs '-XstartOnFirstThread'
+}
+
+// Regenera os efeitos sonoros e a musica (.wav) em assets/sfx
+tasks.register('generateAudio', JavaExec) {
+    group = 'arena'
+    classpath = project(':core').sourceSets.main.runtimeClasspath
+    mainClass = 'com.arena.tools.SfxGenerator'
+    args rootProject.file('assets/sfx').path
+}
+
+// Jar executavel unico: ./gradlew :lwjgl3:dist
+tasks.register('dist', Jar) {
+    group = 'arena'
+    archiveFileName = 'arena-roguelite.jar'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest { attributes 'Main-Class': application.mainClass }
+    dependsOn configurations.runtimeClasspath
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
